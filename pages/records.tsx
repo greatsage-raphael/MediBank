@@ -1,11 +1,9 @@
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "../components/card"
-import {  Web5 } from "@web5/api";
-import { useState, useEffect } from "react";
-import { Button } from "../components/button"
-import { useRouter } from 'next/router'
 import Link from "next/link";
 
 export default function Component() {
+
+  
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

@@ -140,7 +140,7 @@ const writeToDwn = async (medicalRecord: any) => {
   // Check if web5 is not null or undefined
   if (web5) {
     const { record } = await web5.dwn.records.write({
-      data: JSON.stringify(medicalRecord),
+      data: medicalRecord,
       message: {
         protocol: "https://medibank.dev/medical-records-protocol",
         protocolPath: "medicalRecord",
@@ -148,7 +148,8 @@ const writeToDwn = async (medicalRecord: any) => {
         dataFormat: "application/json"
       },
     });
-    console.log("medical 1:", medicalRecord)
+    const truth = await record
+    console.log("TRUTH:", truth)
     return record;
   } else {
     // Handle the case where web5 is null
@@ -164,9 +165,9 @@ const handleSubmit = async (e: any) => {
   console.log("reason", reason)
   const medicalRecord = constructMedicalRecord(summary, doctor, reason);
   const record = await writeToDwn(medicalRecord);
-  console.log("record", record)
+  console.log("Logged record", record)
   setIsSaving(false)
-  router.push("./records")
+  //router.push("./records")
 };
 
 
@@ -186,10 +187,16 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
     const receivedRecords = await Promise.all(
       response.records.map(async (record) => {
         const data = await record.data.json();
+        console.log("data", data)
         return data;
       })
     );
+
+    console.log("response:", response);
+    console.log("Status:", response.status);
+    console.log("Response.Records:", response.records);
     console.log("Records:", receivedRecords);
+    
     return receivedRecords;
   } else {
     console.log("error:", response.status);
