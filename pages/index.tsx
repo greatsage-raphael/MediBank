@@ -7,13 +7,14 @@ import { useRouter } from 'next/router'
 export default function Component() {
     
  const [web5, setWeb5] = useState<Web5 | null>(null)
- const [myDid, setMyDid] = useState<string | null>(null)
+ const [myDid, setMyDid] = useState<string >("")
  const [doctor, setDoctor] = useState<string>("")
  const [summary, setSummary] = useState<string >("")
- const [date, setDate] = useState<string | null >(null)
  const [reason, setReason] = useState("")
  const [isSaving, setIsSaving] = useState(false)
  const router = useRouter()
+
+ const [allRecords, setAllRecords] = useState([]);
 
 
   //connecting to web5 and logging my credentials
@@ -32,13 +33,27 @@ export default function Component() {
 
      if (web5 && did) {
        await configureProtocol(web5, did);
-       await fetchMedicalRecord(web5, did)
+       const data = await fetchMedicalRecord(web5, did) 
+       console.log("Fetched Medical Records", data)
      }
 
 
    };
     initWeb5();
  }, []);
+
+
+ ///retrieving Medical Records
+
+ useEffect(() => {
+  if (!web5 || !myDid) return;
+  const intervalId = setInterval(async () => {
+    const data = await fetchMedicalRecord(web5, myDid);
+    console.log("Retrieving Medical Records", data)
+  }, 2000);
+
+  return () => clearInterval(intervalId);
+}, [web5, myDid]);
 
 
 //defining the mediBank protocol
@@ -106,17 +121,20 @@ export default function Component() {
  };
 
 
+
+
  // console.log("Query Protocol:", queryForProtocol)
 
 
  //configuring the protocol
- const configureProtocol = async (web5: Web5, did: any) => {
+ const configureProtocol = async (web5: Web5, did: string) => {
    const protocolDefinition = await createProtocolDefinition();
 
 
    const { protocols: localProtocol, status: localProtocolStatus } =
        await queryForProtocol(web5);
-   console.log({ localProtocol, localProtocolStatus });
+   console.log( "Local Protocol", localProtocol[0] );
+   console.log("LocalProtocolStatus:", localProtocolStatus)
   
    if (localProtocolStatus.code !== 200 || localProtocol.length === 0) {
        const { protocol, status } = await installProtocolLocally(web5, protocolDefinition);
@@ -157,11 +175,12 @@ const constructMedicalRecord = (summary: string, doctor: string, reason: string)
 
 
 
-const writeToDwn = async (medicalRecord: any) => {
+const writeToDwn = async (JSONmedicalRecord: any) => {
  // Check if web5 is not null or undefined
  if (web5) {
-   const { record } = await web5.dwn.records.write({
-     data: medicalRecord,
+  //create a record with the .create method
+   const { record } = await web5.dwn.records.create({
+     data: JSONmedicalRecord,
      message: {
        protocol: "https://medibank.dev/medical-records-protocol",
        protocolPath: "medicalRecord",
@@ -169,28 +188,40 @@ const writeToDwn = async (medicalRecord: any) => {
        dataFormat: "application/json"
      },
    });
-   const truth = await record
+   const truth = record
+   if(record){
+    const {status} = await record.send(myDid);
+   }
+
    console.log("TRUTH:", truth)
    return record;
  } else {
    // Handle the case where web5 is null
    console.error("web5 is null or undefined");
  }
+
 };
+
+
 
 
 const handleSubmit = async (e: any) => {
  e.preventDefault();
- setIsSaving(true)
+ //setIsSaving(true)
  console.log("summary",summary)
  console.log("doctor", doctor)
  console.log("reason", reason)
+ console.log("All saved Records", allRecords)
  const medicalRecord = constructMedicalRecord(summary, doctor, reason);
- const record = await writeToDwn(medicalRecord);
+ const JSONmedicalRecord = JSON.stringify(medicalRecord)
+ const record = await writeToDwn(JSONmedicalRecord);
  console.log("Logged record", record)
- setIsSaving(false)
+ //setIsSaving(false)
  //router.push("./records")
 };
+
+
+
 
 
 
@@ -204,9 +235,15 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
      filter: {
        protocol: "https://medibank.dev/medical-records-protocol",
        schema: "https://medibank.dev/medicalRecord",
+       dataFormat: 'application/json',
      },
+     //sorting the records 
+     //dateSort: 'createdAscending',
    },
  });
+
+
+ console.log("Response", response)
 
 
  if (response.records && response.status.code === 200) {
@@ -214,14 +251,12 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
      response.records.map(async (record) => {
        const data = await record.data.json();
        console.log("data", data)
+       setAllRecords(data)
        return data;
      })
    );
 
 
-   console.log("response:", response);
-   console.log("Status:", response.status);
-   console.log("Response.Records:", response.records);
    console.log("Records:", receivedRecords);
   
    return receivedRecords;
@@ -231,7 +266,7 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
 };
 
 
-console.log("fetchMedicalRecord:", fetchMedicalRecord)
+// console.log("fetchMedicalRecord:", fetchMedicalRecord)
 
 
  return (
