@@ -1,5 +1,4 @@
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "./card"
-import Link from "next/link";
 
 interface Record {
   author: string;

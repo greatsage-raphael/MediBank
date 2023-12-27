@@ -3,7 +3,7 @@ import {  Web5 } from "@web5/api";
 import { useState, useEffect, SVGProps } from "react";
 import { useRouter } from 'next/router'
 import Records from "../components/records";
-import Link from "next/link";
+
 
 
 export default function Component() {
