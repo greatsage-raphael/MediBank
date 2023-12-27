@@ -2,6 +2,8 @@ import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter }
 import {  Web5 } from "@web5/api";
 import { useState, useEffect, SVGProps } from "react";
 import { useRouter } from 'next/router'
+import Records from "../components/records";
+import Link from "next/link";
 
 
 export default function Component() {
@@ -13,8 +15,8 @@ export default function Component() {
  const [reason, setReason] = useState("")
  const [isSaving, setIsSaving] = useState(false)
  const router = useRouter()
-
- const [allRecords, setAllRecords] = useState([]);
+ const [allRecords, setAllRecords] = useState<any[] | undefined>(undefined);
+ const [showForm, setShowForm] = useState(false);
 
 
   //connecting to web5 and logging my credentials
@@ -33,27 +35,17 @@ export default function Component() {
 
      if (web5 && did) {
        await configureProtocol(web5, did);
-       const data = await fetchMedicalRecord(web5, did) 
-       console.log("Fetched Medical Records", data)
      }
-
-
    };
     initWeb5();
  }, []);
 
 
  ///retrieving Medical Records
-
  useEffect(() => {
-  if (!web5 || !myDid) return;
-  const intervalId = setInterval(async () => {
-    const data = await fetchMedicalRecord(web5, myDid);
-    console.log("Retrieving Medical Records", data)
-  }, 2000);
-
-  return () => clearInterval(intervalId);
-}, [web5, myDid]);
+  if (!web5 || !myDid) return; 
+  fetchMedicalRecord(web5, myDid).then(records => setAllRecords(records));
+}, [web5, myDid, allRecords]);
 
 
 //defining the mediBank protocol
@@ -217,7 +209,7 @@ const handleSubmit = async (e: any) => {
  const record = await writeToDwn(JSONmedicalRecord);
  console.log("Logged record", record)
  //setIsSaving(false)
- //router.push("./records")
+ setShowForm(false);
 };
 
 
@@ -250,8 +242,7 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
    const receivedRecords = await Promise.all(
      response.records.map(async (record) => {
        const data = await record.data.json();
-       console.log("data", data)
-       setAllRecords(data)
+       console.log("Medical Record 1: ", data)
        return data;
      })
    );
@@ -266,12 +257,15 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
 };
 
 
-// console.log("fetchMedicalRecord:", fetchMedicalRecord)
-
+const handleAddRecordClick = () => {
+  setShowForm(true);
+};
 
  return (
+  
    <div className="flex flex-col min-h-screen bg-gray-100">
      <div>
+     {showForm && (
      <Card>
      <CardHeader>
        <CardTitle>Patient Visit Information</CardTitle>
@@ -343,13 +337,23 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
          </form>
      </CardContent>
    </Card>
+   )}
      </div>
+     {!showForm && (
+      <div>
+     <Records records={allRecords} />
+          <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              type="submit"
+              onClick={handleAddRecordClick}>
+              Add Record +
+            </button>
+        </div>
+     )}
    </div>
+
  )
 }
-
-
-
 
 
 
