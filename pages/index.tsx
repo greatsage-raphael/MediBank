@@ -1,12 +1,14 @@
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "../components/card"
 import {  Web5 } from "@web5/api";
-import { useState, useEffect, SVGProps } from "react";
+import { useState, useEffect, SVGProps, ChangeEvent } from "react";
 import { useRouter } from 'next/router'
 import Records from "../components/records";
 
 
-
 export default function Component() {
+  // You can create an empty image file as a placeholder
+const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/png" });
+
     
  const [web5, setWeb5] = useState<Web5 | null>(null)
  const [myDid, setMyDid] = useState<string >("")
@@ -17,6 +19,8 @@ export default function Component() {
  const router = useRouter()
  const [allRecords, setAllRecords] = useState<any[] | undefined>(undefined);
  const [showForm, setShowForm] = useState(false);
+ const [medicalImage, setImage] = useState<File>(emptyImageFile);
+ const [appointment, setAppointment] = useState<string >("")
 
 
   //connecting to web5 and logging my credentials
@@ -29,8 +33,8 @@ export default function Component() {
      setMyDid(did);
 
 
-     console.log("web5:", web5)
-     console.log("did:", did)
+     //console.log("web5:", web5)
+     //console.log("did:", did)
 
 
      if (web5 && did) {
@@ -59,6 +63,9 @@ export default function Component() {
          "schema": "https://medibank.dev/medicalRecord",
          "dataFormats": ["application/json"],
        },
+       "image": {
+        "dataFormats": ['image/png', 'image/jpeg'],
+      },
      },
      "structure": {
        "medicalRecord": {
@@ -74,6 +81,19 @@ export default function Component() {
            }
          ],
        },
+       "image": {
+        "$actions": [
+          {
+            "who": 'author',
+            "of": 'medicalRecord',
+            "can": 'write',
+          },
+          {
+            "who": "author",
+            "can": "read",
+          },
+        ],
+      }
      },
    };
    return mediBankProtocolDefinition;
@@ -125,31 +145,45 @@ export default function Component() {
 
    const { protocols: localProtocol, status: localProtocolStatus } =
        await queryForProtocol(web5);
-   console.log( "Local Protocol", localProtocol[0] );
-   console.log("LocalProtocolStatus:", localProtocolStatus)
+  //  console.log( "Local Protocol", localProtocol[0] );
+  //  console.log("LocalProtocolStatus:", localProtocolStatus)
   
    if (localProtocolStatus.code !== 200 || localProtocol.length === 0) {
        const { protocol, status } = await installProtocolLocally(web5, protocolDefinition);
-       console.log("Protocol installed locally", protocol, status);
+      //  console.log("Protocol installed locally", protocol, status);
 
 
        // Check if 'protocol' is not undefined before using it
        if (protocol) {
            const { status: configureRemoteStatus } = await protocol.send(did);
-           console.log("Did the protocol install on the remote DWN?", configureRemoteStatus);
+          //  console.log("Did the protocol install on the remote DWN?", configureRemoteStatus);
        } else {
-           console.error("Protocol is undefined after installation");
+          //  console.error("Protocol is undefined after installation");
        }
    } else {
-       console.log("Protocol already installed");
+      //  console.log("Protocol already installed");
    }
 };
 
 
-
+const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const selectedFile = e.target.files ? e.target.files[0] : emptyImageFile;
+  setImage(selectedFile);
+};
 
 //making the medical Record
-const constructMedicalRecord = (summary: string, doctor: string, reason: string) => {
+const constructMedicalRecord = async (summary: string, doctor: string, reason: string, appointment:string, medicalImage: File) => {
+  let base64Image = null;
+        
+        if (medicalImage) {
+            const binaryImage = await medicalImage.arrayBuffer();
+            base64Image = btoa(
+                new Uint8Array(binaryImage).reduce(
+                    (data, byte) => data + String.fromCharCode(byte),
+                    ""
+                )
+            );
+        }
  const currentDate = new Date().toLocaleDateString();
  const currentTime = new Date().toLocaleTimeString();
  const medicalRecord = {
@@ -157,6 +191,8 @@ const constructMedicalRecord = (summary: string, doctor: string, reason: string)
    summary: summary,
    doctor: doctor,
    reason: reason,
+   medicalImage: base64Image,
+   appointment: appointment,
    dateAdded: `${currentDate}`,
    time: `${currentTime}`
  };
@@ -185,7 +221,7 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
     const {status} = await record.send(myDid);
    }
 
-   console.log("TRUTH:", truth)
+  //  console.log("TRUTH:", truth)
    return record;
  } else {
    // Handle the case where web5 is null
@@ -199,12 +235,13 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
 
 const handleSubmit = async (e: any) => {
  e.preventDefault();
- //setIsSaving(true)
+ setIsSaving(true)
  console.log("summary",summary)
  console.log("doctor", doctor)
  console.log("reason", reason)
- console.log("All saved Records", allRecords)
- const medicalRecord = constructMedicalRecord(summary, doctor, reason);
+ //console.log("All saved Records", allRecords)
+ console.log("medicalImage", medicalImage)
+ const medicalRecord = constructMedicalRecord(summary, doctor, reason, appointment, medicalImage);
  const JSONmedicalRecord = JSON.stringify(medicalRecord)
  const record = await writeToDwn(JSONmedicalRecord);
  console.log("Logged record", record)
@@ -235,20 +272,20 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
  });
 
 
- console.log("Response", response)
+//  console.log("Response", response)
 
 
  if (response.records && response.status.code === 200) {
    const receivedRecords = await Promise.all(
      response.records.map(async (record) => {
        const data = await record.data.json();
-       console.log("Medical Record 1: ", data)
+      //  console.log("Medical Record 1: ", data)
        return data;
      })
    );
 
 
-   console.log("Records:", receivedRecords);
+  //  console.log("Records:", receivedRecords);
   
    return receivedRecords;
  } else {
@@ -260,6 +297,13 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
 const handleAddRecordClick = () => {
   setShowForm(true);
 };
+
+
+
+
+// console.log("MI: ", medicalImage)
+// console.log("appointment", appointment)
+//console.log(allRecords)
 
  return (
   
@@ -273,9 +317,38 @@ const handleAddRecordClick = () => {
      </CardHeader>
      <CardContent>
        <form onSubmit={(e) => handleSubmit(e)}>
+       <div className="flex flex-col">
+             <label className="sr-only" htmlFor="reason">
+               Reason For Visit
+             </label>
+             <select
+               value={reason}
+               onChange={(e) => setReason(e.target.value)}
+               className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
+               name="reason"
+               id="reason"
+             >
+               <option value="default">Select Reason</option>
+               <option value="General">General Checkup</option>
+               <option value="Emergency Room Visit 🚨">Emergency Room Visit 🚨</option>
+               <option value="Optician 👓">Optician (glasses)  👓</option>
+               <option value="Dental 🦷">Dental (teeth) 🦷</option>
+               <option value="Orthopedics 🦴">Orthopedics (Bones) 🦴</option>
+               <option value="Cardiology 🫀">Cardiology (heart) 🫀</option>
+               <option value="Neurology 🧠">Neurology (Brain, spinal cord, nervous system)🧠</option>
+               <option value="Dermatology">Dermatology (skin, hair, and nails)</option>
+               <option value="Gastroenterology">Gastroenterology (digestive system) 🪱</option>
+               <option value="Obstetrics and Gynecology 🤰">Obstetrics and Gynecology (Pregnancy) 🤰</option>
+               <option value="Psychiatry ">Psychiatry (deleterious mental conditions)</option>
+               <option value="Endocrinology 🧪">Endocrinology (hormones)🧪</option>
+               <option value="Pulmonology 🫁">Pulmonology (Lungs) 🫁</option>
+               <option value="Ophthalmology">Ophthalmology (Eyes, LASIK)👁</option>
+             </select>
+           </div>
+
            <div className="flex flex-col">
              <label className="sr-only" htmlFor="doctor">
-               Doctor
+               Doctor 👨🏿‍⚕️
              </label>
              <input
                type="text"
@@ -302,24 +375,39 @@ const handleAddRecordClick = () => {
                className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
              />
            </div>
+
            <div className="flex flex-col">
-             <label className="sr-only" htmlFor="reason">
-               Reason For Visit
+             <label className="sr-only" htmlFor="doctor">
+               Upload Medical record
              </label>
-             <select
-               value={reason}
-               onChange={(e) => setReason(e.target.value)}
+             <input
+               type="file"
+               accept="image/*"
                className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
-               name="reason"
-               id="reason"
-             >
-               <option value="default">Select Reason (Optional)</option>
-               <option value="General">General</option>
-               <option value="Eye">Eye</option>
-               <option value="Dental">Dental</option>
-               <option value="Other">Other</option>
-             </select>
+               name="medicalRecord"
+               placeholder="medicalRecord"
+               id="medicalReordImage"
+               onChange={handleFileChange}
+               required
+             />
            </div>
+
+           <div className="flex flex-col">
+             <label className="sr-only" htmlFor="doctor">
+               Pick Next Appointment Date
+             </label>
+             <input
+               type="date"
+               className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
+               name="appointment"
+               placeholder="appointment"
+               id="appointment"
+               value={appointment}
+               onChange={(e) => setAppointment(e.target.value)}
+             />
+           </div>
+           
+           
 
 
            <button
@@ -341,13 +429,13 @@ const handleAddRecordClick = () => {
      </div>
      {!showForm && (
       <div>
-     <Records records={allRecords} />
-          <button
+      <button
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               type="submit"
               onClick={handleAddRecordClick}>
               Add Record +
             </button>
+     <Records records={allRecords} />
         </div>
      )}
    </div>

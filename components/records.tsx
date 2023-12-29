@@ -7,6 +7,7 @@ interface Record {
   reason: string;
   time: string;
   dateAdded: string;
+  appointment: string;
 }
 
 interface RecordsProps {
@@ -29,11 +30,34 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
               <CardTitle>{record.reason}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Added on: {record.dateAdded}</p>
               <p>Performed by: {record.doctor}</p>
               <p>Summary: </p>
               <p>{record.summary}</p>
+              <p>Added on: {record.dateAdded}</p>
+              <p>Appointment Scheduled For: {record.appointment}</p>
             </CardContent>
+            <CardFooter>
+            <button
+              className="bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2"
+              type="submit"
+              >
+              Delete ❌
+            </button>
+
+            <button
+              className="bg-teal-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mx-2"
+              type="submit"
+              >
+              Edit ✏️
+            </button>
+
+            <button
+              className="bg-teal-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mx-2"
+              type="submit"
+              >
+              share 📤
+            </button>
+            </CardFooter>
           </Card>
           ))}
         </div>
@@ -44,28 +68,3 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
 
 
 export default Records;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
