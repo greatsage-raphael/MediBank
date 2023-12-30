@@ -3,12 +3,13 @@ import {  Web5 } from "@web5/api";
 import { useState, useEffect, SVGProps, ChangeEvent } from "react";
 import { useRouter } from 'next/router'
 import Records from "../components/records";
+import { AvatarImage, AvatarFallback, Avatar } from "../components/avatar"
+import Link from "next/link";
+
+
 
 
 export default function Component() {
-  // You can create an empty image file as a placeholder
-const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/png" });
-
     
  const [web5, setWeb5] = useState<Web5 | null>(null)
  const [myDid, setMyDid] = useState<string >("")
@@ -19,8 +20,10 @@ const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/
  const router = useRouter()
  const [allRecords, setAllRecords] = useState<any[] | undefined>(undefined);
  const [showForm, setShowForm] = useState(false);
- const [medicalImage, setImage] = useState<File>(emptyImageFile);
  const [appointment, setAppointment] = useState<string >("")
+ const [medicalImage, setMedicalImage] = useState<File | null>(null);
+
+
 
 
   //connecting to web5 and logging my credentials
@@ -33,8 +36,8 @@ const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/
      setMyDid(did);
 
 
-     //console.log("web5:", web5)
-     //console.log("did:", did)
+     console.log("web5:", web5)
+     console.log("did:", did)
 
 
      if (web5 && did) {
@@ -63,12 +66,13 @@ const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/
          "schema": "https://medibank.dev/medicalRecord",
          "dataFormats": ["application/json"],
        },
-       "image": {
-        "dataFormats": ['image/png', 'image/jpeg'],
-      },
+       "medicalImage": {
+          "dataFormats": ["image/png", "image/jpeg"],
+          },
      },
      "structure": {
-       "medicalRecord": {
+       "medicalRecord": 
+      {
          "$actions": [
            {
              "who": "anyone",
@@ -80,20 +84,21 @@ const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/
              "can": "read"
            }
          ],
-       },
-       "image": {
-        "$actions": [
-          {
-            "who": 'author',
-            "of": 'medicalRecord',
-            "can": 'write',
-          },
-          {
-            "who": "author",
-            "can": "read",
-          },
-        ],
-      }
+         "medicalImage": {
+          "$actions": [
+            {
+              "who": "author",
+              "of": "medicalRecord",
+              "can": "write"
+            },
+            {
+              "who": "author",
+              "of": "medicalRecord",
+              "can": "read"
+            }
+          ],
+        },
+      },
      },
    };
    return mediBankProtocolDefinition;
@@ -116,7 +121,7 @@ const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/
  };
 
 
- // console.log("Local Protocol:", installProtocolLocally)
+  //console.log("Local Protocol:", installProtocolLocally)
 
 
 
@@ -145,45 +150,34 @@ const emptyImageFile = new File([new Blob()], "placeholder.png", { type: "image/
 
    const { protocols: localProtocol, status: localProtocolStatus } =
        await queryForProtocol(web5);
-  //  console.log( "Local Protocol", localProtocol[0] );
-  //  console.log("LocalProtocolStatus:", localProtocolStatus)
+   //console.log( "Local Protocol", localProtocol[0] );
+   //console.log("LocalProtocolStatus:", localProtocolStatus)
   
    if (localProtocolStatus.code !== 200 || localProtocol.length === 0) {
        const { protocol, status } = await installProtocolLocally(web5, protocolDefinition);
-      //  console.log("Protocol installed locally", protocol, status);
+       //console.log("Protocol installed locally", protocol, status);
 
 
        // Check if 'protocol' is not undefined before using it
        if (protocol) {
            const { status: configureRemoteStatus } = await protocol.send(did);
-          //  console.log("Did the protocol install on the remote DWN?", configureRemoteStatus);
+           //console.log("Did the protocol install on the remote DWN?", configureRemoteStatus);
        } else {
-          //  console.error("Protocol is undefined after installation");
+           //console.error("Protocol is undefined after installation");
        }
    } else {
-      //  console.log("Protocol already installed");
+       console.log("Protocol already installed");
    }
 };
 
 
 const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-  const selectedFile = e.target.files ? e.target.files[0] : emptyImageFile;
-  setImage(selectedFile);
+  const selectedFile = e.target.files ? e.target.files[0] : null;
+  setMedicalImage(selectedFile);
 };
 
 //making the medical Record
-const constructMedicalRecord = async (summary: string, doctor: string, reason: string, appointment:string, medicalImage: File) => {
-  let base64Image = null;
-        
-        if (medicalImage) {
-            const binaryImage = await medicalImage.arrayBuffer();
-            base64Image = btoa(
-                new Uint8Array(binaryImage).reduce(
-                    (data, byte) => data + String.fromCharCode(byte),
-                    ""
-                )
-            );
-        }
+const constructMedicalRecord = (summary: string, doctor: string, reason: string, appointment:string) => {
  const currentDate = new Date().toLocaleDateString();
  const currentTime = new Date().toLocaleTimeString();
  const medicalRecord = {
@@ -191,7 +185,6 @@ const constructMedicalRecord = async (summary: string, doctor: string, reason: s
    summary: summary,
    doctor: doctor,
    reason: reason,
-   medicalImage: base64Image,
    appointment: appointment,
    dateAdded: `${currentDate}`,
    time: `${currentTime}`
@@ -199,6 +192,32 @@ const constructMedicalRecord = async (summary: string, doctor: string, reason: s
  console.log("Medicalrecord:", medicalRecord)
  return medicalRecord;
 };
+
+async function imageWrite(imageDataFile: File, contextId: string) {
+  const imageblob = new Blob([imageDataFile], { type: 'image/jpeg' });
+
+  if(web5){
+    console.log("Begin")
+  const { record } = await web5.dwn.records.create({
+    data: imageblob,
+    store: false,
+    message: {
+      schema: "https://medibank.dev/medicalRecord",
+      dataFormat: 'image/jpeg',
+      protocol: 'https://medibank.dev/medical-records-protocol',
+      protocolPath: 'medicalRecord/medicalImage',
+      parentId: contextId,
+      contextId: contextId,
+      published: false,
+    },
+  });
+  if (record){
+    console.log("Begin 2")
+  const { status: imagestatus } = await record.send(myDid);
+  console.log("ImageStaus: ", imagestatus);
+  }
+}
+}
 
 
 
@@ -216,12 +235,15 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
        dataFormat: "application/json"
      },
    });
-   const truth = record
    if(record){
     const {status} = await record.send(myDid);
    }
 
-  //  console.log("TRUTH:", truth)
+   console.log("Mediacl Img: ", medicalImage)
+   if(medicalImage && record){
+    const conId = record.id
+    await imageWrite(medicalImage, conId)
+   }
    return record;
  } else {
    // Handle the case where web5 is null
@@ -235,13 +257,12 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
 
 const handleSubmit = async (e: any) => {
  e.preventDefault();
- setIsSaving(true)
+ //setIsSaving(true)
  console.log("summary",summary)
  console.log("doctor", doctor)
  console.log("reason", reason)
- //console.log("All saved Records", allRecords)
- console.log("medicalImage", medicalImage)
- const medicalRecord = constructMedicalRecord(summary, doctor, reason, appointment, medicalImage);
+ console.log("All saved Records", allRecords)
+ const medicalRecord = constructMedicalRecord(summary, doctor, reason, appointment);
  const JSONmedicalRecord = JSON.stringify(medicalRecord)
  const record = await writeToDwn(JSONmedicalRecord);
  console.log("Logged record", record)
@@ -258,6 +279,7 @@ const handleSubmit = async (e: any) => {
 
 
 const fetchMedicalRecord = async (web5: Web5, did: any) => {
+
  const response = await web5.dwn.records.query({
    from: did,
    message: {
@@ -266,27 +288,71 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
        schema: "https://medibank.dev/medicalRecord",
        dataFormat: 'application/json',
      },
-     //sorting the records 
-     //dateSort: 'createdAscending',
    },
  });
 
+ //get images
+ const { records } = await web5.dwn.records.query({
+  from: did,
+  message: {
+    filter: {
+      protocol: "https://medibank.dev/medical-records-protocol",
+      protocolPath: 'medicalRecord/medicalImage',
+    },
+  },
+});
+//console.log('image records :', records);
 
-//  console.log("Response", response)
-
-
+const imagerecords = records 
+ 
  if (response.records && response.status.code === 200) {
+  
    const receivedRecords = await Promise.all(
      response.records.map(async (record) => {
        const data = await record.data.json();
-      //  console.log("Medical Record 1: ", data)
+       if (imagerecords) {
+        imagerecords.forEach(async (image) => {
+          const imageId = image.id
+          //console.log("ImageId", imageId)
+    
+            const {record, status }= await web5.dwn.records.read({
+                      from: did,
+                      message: {
+                       filter: {
+                        recordId: imageId,
+                       },
+                      // protocol: 'http://test3',
+                      // protocolPath: 'blogpost/image',
+                    },
+                    });
+    
+            //console.log ("Here's Image", {record, status})
+           const imageresult = await record.data.blob();
+    
+           // Create a URL for the image
+           const imageUrl = URL.createObjectURL(imageresult);
+           //console.log("ImageURL:", imageUrl)
+    
+           // Retrieve the id of the Medical Record Assosiated with image in imageWrite 
+           const medicalImageId = image.parentId
+           //console.log("ParentId", medicalImageId)
+           const MedicalRecordId = record.id
+           //console.log("MedicalRecordId", MedicalRecordId)
+
+           if (medicalImageId === MedicalRecordId){
+            console.log("Eureka")
+           }
+           
+            //data.imageLink = imageUrl
+
+            //console.log("Link Data", data)
+                   
+        })
+      }  
+       //console.log("Medical Record 1: ", data)
        return data;
      })
-   );
-
-
-  //  console.log("Records:", receivedRecords);
-  
+   );  
    return receivedRecords;
  } else {
    console.log("error:", response.status);
@@ -299,15 +365,34 @@ const handleAddRecordClick = () => {
 };
 
 
+ function Navbar() {
 
-
-// console.log("MI: ", medicalImage)
-// console.log("appointment", appointment)
-//console.log(allRecords)
-
+  function copyText(entryText: string){
+    navigator.clipboard.writeText(entryText);
+  }
+  return (
+      <header className="flex items-center h-16 px-4 border-b bg-white">
+        <StethoscopeIcon className="h-6 w-6" />
+      <h1 className="ml-2 text-2xl font-semibold">MediBank</h1>
+      <nav className="ml-auto font-medium">
+      <div className="flex items-center gap-3 mb-4 mx-2">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback>My Did</AvatarFallback>
+            <AvatarImage alt="User Avatar" src="/avatar.png" />
+          </Avatar>
+          <div className="grid gap-0.5 text-xs">
+            {/* <div className="font-medium">{myDid}</div> */}
+            <button onClick={() => copyText("hello there")}>Click me</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+  )
+}
  return (
   
    <div className="flex flex-col min-h-screen bg-gray-100">
+    <Navbar />
      <div>
      {showForm && (
      <Card>
@@ -330,19 +415,18 @@ const handleAddRecordClick = () => {
              >
                <option value="default">Select Reason</option>
                <option value="General">General Checkup</option>
-               <option value="Emergency Room Visit 🚨">Emergency Room Visit 🚨</option>
+               <option value="Emergency Room Visits 🚨">Emergency Room Visits 🚨</option>
                <option value="Optician 👓">Optician (glasses)  👓</option>
                <option value="Dental 🦷">Dental (teeth) 🦷</option>
                <option value="Orthopedics 🦴">Orthopedics (Bones) 🦴</option>
                <option value="Cardiology 🫀">Cardiology (heart) 🫀</option>
-               <option value="Neurology 🧠">Neurology (Brain, spinal cord, nervous system)🧠</option>
-               <option value="Dermatology">Dermatology (skin, hair, and nails)</option>
-               <option value="Gastroenterology">Gastroenterology (digestive system) 🪱</option>
-               <option value="Obstetrics and Gynecology 🤰">Obstetrics and Gynecology (Pregnancy) 🤰</option>
-               <option value="Psychiatry ">Psychiatry (deleterious mental conditions)</option>
-               <option value="Endocrinology 🧪">Endocrinology (hormones)🧪</option>
-               <option value="Pulmonology 🫁">Pulmonology (Lungs) 🫁</option>
-               <option value="Ophthalmology">Ophthalmology (Eyes, LASIK)👁</option>
+               <option value="Neurology 🧠">Neurology (Brain, Spinal)🧠</option>
+               <option value="Dermatology">Dermatology (Skin)</option>
+               <option value="Gastroenterology 🪱">Gastroenterology (Digestive track)🪱</option>
+               <option value="Obstetrics and Gynecology 🤰">Obstetrics and Gynecology 🤰</option>
+               <option value="Endocrinology 🧪">Endocrinology 🧪</option>
+               <option value="Pulmonology 🫁">Pulmonology🫁</option>
+               <option value="Ophthalmology 👁">Ophthalmology 👁</option>
              </select>
            </div>
 
@@ -378,36 +462,35 @@ const handleAddRecordClick = () => {
 
            <div className="flex flex-col">
              <label className="sr-only" htmlFor="doctor">
-               Upload Medical record
+               Date
              </label>
              <input
-               type="file"
-               accept="image/*"
+               type="date"
                className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
-               name="medicalRecord"
-               placeholder="medicalRecord"
-               id="medicalReordImage"
-               onChange={handleFileChange}
+               name=""
+               placeholder="Date of Next Appointment"
+               id="appointment"
+               value={appointment}
+               onChange={(e) => setAppointment(e.target.value)}
                required
              />
            </div>
 
            <div className="flex flex-col">
              <label className="sr-only" htmlFor="doctor">
-               Pick Next Appointment Date
+               MedicalImage
              </label>
              <input
-               type="date"
+               type="file"
                className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
-               name="appointment"
-               placeholder="appointment"
-               id="appointment"
-               value={appointment}
-               onChange={(e) => setAppointment(e.target.value)}
+               name=""
+               placeholder="Medical Image"
+               id="medicalImage"
+               accept="image/*"
+               onChange={handleFileChange}
+               required
              />
            </div>
-           
-           
 
 
            <button
@@ -429,8 +512,9 @@ const handleAddRecordClick = () => {
      </div>
      {!showForm && (
       <div>
+        
       <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-2 mx-2"
               type="submit"
               onClick={handleAddRecordClick}>
               Add Record +
@@ -462,4 +546,26 @@ function CheckIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
      <polyline points="20 6 9 17 4 12" />
    </svg>
  )
+}
+
+
+function StethoscopeIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+      <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+      <circle cx="20" cy="10" r="2" />
+    </svg>
+  )
 }

@@ -35,6 +35,7 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
               <p>{record.summary}</p>
               <p>Added on: {record.dateAdded}</p>
               <p>Appointment Scheduled For: {record.appointment}</p>
+              
             </CardContent>
             <CardFooter>
             <button
@@ -51,12 +52,12 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
               Edit ✏️
             </button>
 
-            <button
+            {/* <button
               className="bg-teal-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mx-2"
               type="submit"
               >
               share 📤
-            </button>
+            </button> */}
             </CardFooter>
           </Card>
           ))}

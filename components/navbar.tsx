@@ -4,6 +4,7 @@ import { SVGProps } from "react"
 export default function Navbar() {
     return (
         <header className="flex items-center h-16 px-4 border-b bg-white">
+          <StethoscopeIcon className="h-6 w-6" />
         <h1 className="ml-2 text-2xl font-semibold">MediBank</h1>
         <nav className="ml-auto font-medium">
           <Link className="mx-2 text-gray-500 hover:text-gray-900" href="/">
