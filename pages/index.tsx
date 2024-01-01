@@ -3,25 +3,11 @@ import {  Web5 } from "@web5/api";
 import { useState, useEffect, SVGProps, ChangeEvent } from "react";
 import { useRouter } from 'next/router'
 import Records from "../components/records";
-import { AvatarImage, AvatarFallback, Avatar } from "../components/avatar"
 import Navbar from "../components/navbar";
 //import { blobToURL, urlToBlob, fromBlob, fromURL } from 'image-resize-compress'
 
 
-interface Record {
-  author: string;
-  summary: string;
-  doctor: string;
-  reason: string;
-  time: string;
-  dateAdded: string;
-  appointment: string;
-  image: string;
-}
 
-interface RecordsProps {
-  records: any[] | undefined;
-}
 
 
 export default function Component() {
@@ -313,7 +299,7 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
     },
   },
 });
-//console.log('image records :', records); 
+console.log('image records :', records); 
 
 const MedicalRecordsIds: any[] = []
 
@@ -362,7 +348,7 @@ if (response.records && response.status.code === 200) {
     })
   );
   
-  console.log("ReceivedRecords: ", receivedRecords)
+  //console.log("ReceivedRecords: ", receivedRecords)
   return receivedRecords;
 } else {
   console.log("Error:", response.status);
