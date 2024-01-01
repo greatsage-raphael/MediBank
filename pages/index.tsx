@@ -196,7 +196,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 
     let diff = originalImage.size - image.size 
 
-    console.log("diff", diff)
 
     setMedicalImage(compressedImage);
 
@@ -204,7 +203,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     //setCompressedLink(downloadLink);
   });
 }
-
 };
 
 //making the medical Record
@@ -369,9 +367,11 @@ if (response.records && response.status.code === 200) {
           const imageresult = await record.data.blob()
           const imageUrl = URL.createObjectURL(imageresult);
           data.image = imageUrl
+          data.id = medicalRecordId
+          data.imageId = imageId
           
           const completedMedicalrecords = data;
-          //console.log('new data:', completedMedicalrecords);
+          console.log('new data:', completedMedicalrecords);
           data = completedMedicalrecords
           }
         }
@@ -524,13 +524,21 @@ const handleAddRecordClick = () => {
      {!showForm && (
       <div>
         
-      <button
+            <button
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-2 mx-2"
               type="submit"
               onClick={handleAddRecordClick}>
               Add Record +
             </button>
-     <Records records={allRecords} />
+
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-2 mx-2"
+              type="submit"
+              // onClick={}
+              >
+              Share Medical History 📤
+            </button>
+     <Records records={allRecords} web5={web5} did={myDid}/>
         </div>
      )}
    </div>

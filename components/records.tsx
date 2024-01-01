@@ -1,7 +1,9 @@
+import { Web5 } from "@web5/api";
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "./card"
 
 
 interface Record {
+  id: string;
   author: string;
   summary: string;
   doctor: string;
@@ -13,18 +15,39 @@ interface Record {
 }
 
 interface RecordsProps {
-  records: any[] | undefined;
+  records: Record[] | undefined;
+  did: string;
+  web5: Web5 | null;
 }
 
-const Records: React.FC<RecordsProps> = ({ records }) => {
+const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   if (!records) {
     return <p>No medical records found.</p>;
   }
 
-   //console.log("Records: ",records[0].author)
+  console.log("Records", records)
 
-   //const did = records[0].author
-
+  const deleteRecord = async (recordId: string) => {
+    console.log('deleting', recordId);
+    if (!web5 || !did) {
+      console.error("Web5 or did is missing");
+      return;
+    }
+    
+    const response = await web5.dwn.records.delete({
+      from: did,
+      message: {
+        recordId: recordId,
+      },
+    });
+  
+    if (response.status.code === 200) {
+      console.log(`Record:${recordId} deleted successfully`);
+      // TODO: Update your records state here to remove the deleted record
+    } else {
+      console.error("Error while deleting record:", response.status);
+    }
+  }
 
 
   return (
@@ -64,8 +87,9 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
             <button
               className="bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2"
               type="submit"
-              >
-              Delete ❌
+              onClick={() => deleteRecord(record.id)} // add this
+            >
+            Delete ❌
             </button>
 
             <button
