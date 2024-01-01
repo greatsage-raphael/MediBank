@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import Records from "../components/records";
 import Navbar from "../components/navbar";
 //import { blobToURL, urlToBlob, fromBlob, fromURL } from 'image-resize-compress'
+import imageCompression  from "browser-image-compression"
 
 
 
@@ -170,8 +171,40 @@ export default function Component() {
 
 
 const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-  const selectedFile = e.target.files ? e.target.files[0] : null;
-  setMedicalImage(selectedFile);
+
+  const options = {
+    maxSizeMB: 0.6,
+    useWebWorker: true
+  };
+
+  const originalImage = e.target.files ? e.target.files[0] : null;
+
+  if(originalImage){
+  // compress the original image
+  
+  let compressedImage;
+  imageCompression(originalImage, options).then(image => {
+    compressedImage = image
+    
+    console.log("original", originalImage)
+    console.log("Image: ",image)
+    
+
+    const downloadLink = URL.createObjectURL(image);
+
+    console.log(downloadLink)
+
+    let diff = originalImage.size - image.size 
+
+    console.log("diff", diff)
+
+    setMedicalImage(compressedImage);
+
+    //console.log("DownloadLink: ",downloadLink)
+    //setCompressedLink(downloadLink);
+  });
+}
+
 };
 
 //making the medical Record
@@ -299,7 +332,7 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
     },
   },
 });
-console.log('image records :', records); 
+//console.log('image records :', records); 
 
 const MedicalRecordsIds: any[] = []
 
@@ -314,10 +347,10 @@ if (response.records && response.status.code === 200) {
 
       if (records) {
         for (const imageRecord of records) {
-          console.log('Image Record:', imageRecord);
+          //console.log('Image Record:', imageRecord);
 
           const imageId = imageRecord.id
-          console.log("Image ID :", imageId)
+          //console.log("Image ID :", imageId)
           
           // Retrieve blob data for the image record
           const { record, status } = await web5.dwn.records.read({
@@ -338,7 +371,7 @@ if (response.records && response.status.code === 200) {
           data.image = imageUrl
           
           const completedMedicalrecords = data;
-          console.log('new data:', completedMedicalrecords);
+          //console.log('new data:', completedMedicalrecords);
           data = completedMedicalrecords
           }
         }
@@ -361,7 +394,6 @@ const handleAddRecordClick = () => {
 };
 
 
- 
 
 
 
@@ -467,6 +499,9 @@ const handleAddRecordClick = () => {
                required
              />
            </div>
+
+           
+
 
 
            <button
