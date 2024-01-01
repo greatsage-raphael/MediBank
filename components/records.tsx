@@ -1,5 +1,6 @@
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "./card"
 
+
 interface Record {
   author: string;
   summary: string;
@@ -8,6 +9,7 @@ interface Record {
   time: string;
   dateAdded: string;
   appointment: string;
+  image: string;
 }
 
 interface RecordsProps {
@@ -19,7 +21,15 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
     return <p>No medical records found.</p>;
   }
 
+   //console.log("Records: ",records[0].author)
+
+   //const did = records[0].author
+
+
+
   return (
+
+    
     <div className="flex flex-col min-h-screen bg-gray-100">
       <main className="flex-grow p-4">
         <h2 className="text-xl font-semibold mb-4">Your Medical Records</h2>
@@ -30,12 +40,25 @@ const Records: React.FC<RecordsProps> = ({ records }) => {
               <CardTitle>{record.reason}</CardTitle>
             </CardHeader>
             <CardContent>
+            <img
+                alt={record.reason}
+                className="mb-2"
+                height="600"
+                src={record.image}
+                style={{
+                  aspectRatio: "100/100",
+                  objectFit: "cover",
+                }}
+                width="1000"
+              />
               <p>Performed by: {record.doctor}</p>
               <p>Summary: </p>
               <p>{record.summary}</p>
               <p>Added on: {record.dateAdded}</p>
               <p>Appointment Scheduled For: {record.appointment}</p>
+              <div>
               
+              </div>
             </CardContent>
             <CardFooter>
             <button

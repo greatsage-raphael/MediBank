@@ -4,9 +4,24 @@ import { useState, useEffect, SVGProps, ChangeEvent } from "react";
 import { useRouter } from 'next/router'
 import Records from "../components/records";
 import { AvatarImage, AvatarFallback, Avatar } from "../components/avatar"
-import Link from "next/link";
+import Navbar from "../components/navbar";
+//import { blobToURL, urlToBlob, fromBlob, fromURL } from 'image-resize-compress'
 
 
+interface Record {
+  author: string;
+  summary: string;
+  doctor: string;
+  reason: string;
+  time: string;
+  dateAdded: string;
+  appointment: string;
+  image: string;
+}
+
+interface RecordsProps {
+  records: any[] | undefined;
+}
 
 
 export default function Component() {
@@ -22,9 +37,6 @@ export default function Component() {
  const [showForm, setShowForm] = useState(false);
  const [appointment, setAppointment] = useState<string >("")
  const [medicalImage, setMedicalImage] = useState<File | null>(null);
-
-
-
 
   //connecting to web5 and logging my credentials
  useEffect(() => {
@@ -301,62 +313,60 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
     },
   },
 });
-//console.log('image records :', records);
+//console.log('image records :', records); 
 
-const imagerecords = records 
+const MedicalRecordsIds: any[] = []
+
+
  
- if (response.records && response.status.code === 200) {
+if (response.records && response.status.code === 200) {
+  const receivedRecords = await Promise.all(
+    response.records.map(async (record) => {
+      let data = await record.data.json();
+      const medicalRecordId = record.id;
+      MedicalRecordsIds.push(medicalRecordId);
+
+      if (records) {
+        for (const imageRecord of records) {
+          console.log('Image Record:', imageRecord);
+
+          const imageId = imageRecord.id
+          console.log("Image ID :", imageId)
+          
+          // Retrieve blob data for the image record
+          const { record, status } = await web5.dwn.records.read({
+            from: did,
+            message: {
+              filter: {
+                recordId: imageId,
+              },
+            },
+          });
+
+          const parentId = imageRecord.contextId
+
+          if(parentId === medicalRecordId) {
+          
+          const imageresult = await record.data.blob()
+          const imageUrl = URL.createObjectURL(imageresult);
+          data.image = imageUrl
+          
+          const completedMedicalrecords = data;
+          console.log('new data:', completedMedicalrecords);
+          data = completedMedicalrecords
+          }
+        }
+      }
+      // Return 'data' which now holds 'completedMedicalrecords'.
+      return data
+    })
+  );
   
-   const receivedRecords = await Promise.all(
-     response.records.map(async (record) => {
-       const data = await record.data.json();
-       if (imagerecords) {
-        imagerecords.forEach(async (image) => {
-          const imageId = image.id
-          //console.log("ImageId", imageId)
-    
-            const {record, status }= await web5.dwn.records.read({
-                      from: did,
-                      message: {
-                       filter: {
-                        recordId: imageId,
-                       },
-                      // protocol: 'http://test3',
-                      // protocolPath: 'blogpost/image',
-                    },
-                    });
-    
-            //console.log ("Here's Image", {record, status})
-           const imageresult = await record.data.blob();
-    
-           // Create a URL for the image
-           const imageUrl = URL.createObjectURL(imageresult);
-           //console.log("ImageURL:", imageUrl)
-    
-           // Retrieve the id of the Medical Record Assosiated with image in imageWrite 
-           const medicalImageId = image.parentId
-           //console.log("ParentId", medicalImageId)
-           const MedicalRecordId = record.id
-           //console.log("MedicalRecordId", MedicalRecordId)
-
-           if (medicalImageId === MedicalRecordId){
-            console.log("Eureka")
-           }
-           
-            //data.imageLink = imageUrl
-
-            //console.log("Link Data", data)
-                   
-        })
-      }  
-       //console.log("Medical Record 1: ", data)
-       return data;
-     })
-   );  
-   return receivedRecords;
- } else {
-   console.log("error:", response.status);
- }
+  console.log("ReceivedRecords: ", receivedRecords)
+  return receivedRecords;
+} else {
+  console.log("Error:", response.status);
+}
 };
 
 
@@ -365,30 +375,10 @@ const handleAddRecordClick = () => {
 };
 
 
- function Navbar() {
+ 
 
-  function copyText(entryText: string){
-    navigator.clipboard.writeText(entryText);
-  }
-  return (
-      <header className="flex items-center h-16 px-4 border-b bg-white">
-        <StethoscopeIcon className="h-6 w-6" />
-      <h1 className="ml-2 text-2xl font-semibold">MediBank</h1>
-      <nav className="ml-auto font-medium">
-      <div className="flex items-center gap-3 mb-4 mx-2">
-          <Avatar className="h-9 w-9">
-            <AvatarFallback>My Did</AvatarFallback>
-            <AvatarImage alt="User Avatar" src="/avatar.png" />
-          </Avatar>
-          <div className="grid gap-0.5 text-xs">
-            {/* <div className="font-medium">{myDid}</div> */}
-            <button onClick={() => copyText("hello there")}>Click me</button>
-          </div>
-        </div>
-      </nav>
-    </header>
-  )
-}
+
+
  return (
   
    <div className="flex flex-col min-h-screen bg-gray-100">
@@ -524,27 +514,6 @@ const handleAddRecordClick = () => {
      )}
    </div>
 
- )
-}
-
-
-
-function CheckIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
- return (
-   <svg
-     {...props}
-     xmlns="http://www.w3.org/2000/svg"
-     width="24"
-     height="24"
-     viewBox="0 0 24 24"
-     fill="none"
-     stroke="currentColor"
-     strokeWidth="2"
-     strokeLinecap="round"
-     strokeLinejoin="round"
-   >
-     <polyline points="20 6 9 17 4 12" />
-   </svg>
  )
 }
 

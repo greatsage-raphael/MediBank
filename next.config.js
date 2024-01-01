@@ -4,6 +4,10 @@ const webpack = require('webpack');
 const nextConfig = {
   reactStrictMode: true,
 
+  images: {
+    domains: ['robohash.org'], // Add the image domain(s) here
+  },
+
   webpack: (config, { isServer, buildId, dev, webpack }) => {
     if (!isServer) {
       config.resolve.fallback = {

@@ -1,19 +1,25 @@
-import Link from "next/link"
+import { Avatar, AvatarImage } from "@radix-ui/react-avatar"
 import { SVGProps } from "react"
 
 export default function Navbar() {
-    return (
-        <header className="flex items-center h-16 px-4 border-b bg-white">
-          <StethoscopeIcon className="h-6 w-6" />
-        <h1 className="ml-2 text-2xl font-semibold">MediBank</h1>
-        <nav className="ml-auto font-medium">
-          <Link className="mx-2 text-gray-500 hover:text-gray-900" href="/">
-            Home
-          </Link>
-        </nav>
-      </header>
-    )
-  }
+  
+  return (
+      <header className="flex items-center h-16 px-4 border-b bg-white">
+        <StethoscopeIcon className="h-6 w-6" />
+      <h1 className="ml-2 text-2xl font-semibold">MediBank</h1>
+      <nav className="ml-auto font-medium">
+      <div className="flex items-center gap-3 mb-4 mx-2">
+          <Avatar className="h-9 w-9">
+            <AvatarImage alt="User Avatar" src="https://robohash.org/avatar.png" />
+          </Avatar>
+          <div className="grid gap-0.5 text-xs"> 
+          </div>
+        </div>
+      </nav>
+    </header>
+  )
+}
+
 
 
   function StethoscopeIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
