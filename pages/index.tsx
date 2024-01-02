@@ -4,11 +4,11 @@ import { useState, useEffect, SVGProps, ChangeEvent } from "react";
 import { useRouter } from 'next/router'
 import Records from "../components/records";
 import Navbar from "../components/navbar";
-//import { blobToURL, urlToBlob, fromBlob, fromURL } from 'image-resize-compress'
 import imageCompression  from "browser-image-compression"
-
-
-
+import { Button } from "../components/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/avatar";
+import { Badge } from "../components/badge";
+import Link from "next/link";
 
 
 export default function Component() {
@@ -268,7 +268,7 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
     const {status} = await record.send(myDid);
    }
 
-   console.log("Mediacl Img: ", medicalImage)
+   console.log("Medical Img: ", medicalImage)
    if(medicalImage && record){
     const conId = record.id
     await imageWrite(medicalImage, conId)
@@ -286,7 +286,7 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
 
 const handleSubmit = async (e: any) => {
  e.preventDefault();
- //setIsSaving(true)
+ setIsSaving(true)
  console.log("summary",summary)
  console.log("doctor", doctor)
  console.log("reason", reason)
@@ -295,20 +295,13 @@ const handleSubmit = async (e: any) => {
  const JSONmedicalRecord = JSON.stringify(medicalRecord)
  const record = await writeToDwn(JSONmedicalRecord);
  console.log("Logged record", record)
- //setIsSaving(false)
+ setIsSaving(false)
  setShowForm(false);
 };
 
 
 
-
-
-
-
-
-
 const fetchMedicalRecord = async (web5: Web5, did: any) => {
-
  const response = await web5.dwn.records.query({
    from: did,
    message: {
@@ -333,8 +326,6 @@ const fetchMedicalRecord = async (web5: Web5, did: any) => {
 //console.log('image records :', records); 
 
 const MedicalRecordsIds: any[] = []
-
-
  
 if (response.records && response.status.code === 200) {
   const receivedRecords = await Promise.all(
@@ -396,11 +387,9 @@ const handleAddRecordClick = () => {
 
 
 
-
  return (
-  
    <div className="flex flex-col min-h-screen bg-gray-100">
-    <Navbar />
+    <Navbar did={myDid}/>
      <div>
      {showForm && (
      <Card>
@@ -409,7 +398,7 @@ const handleAddRecordClick = () => {
        <CardDescription>Please fill out this form regarding your recent medical visit.</CardDescription>
      </CardHeader>
      <CardContent>
-       <form onSubmit={(e) => handleSubmit(e)}>
+       <form onSubmit={(e) => handleSubmit(e)} className="space-y-4 mx-auto w-1/2" >
        <div className="flex flex-col">
              <label className="sr-only" htmlFor="reason">
                Reason For Visit
@@ -417,10 +406,9 @@ const handleAddRecordClick = () => {
              <select
                value={reason}
                onChange={(e) => setReason(e.target.value)}
-               className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
+               className="w-full bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
                name="reason"
-               id="reason"
-             >
+               id="reason">
                <option value="default">Select Reason</option>
                <option value="General">General Checkup</option>
                <option value="Emergency Room Visits 🚨">Emergency Room Visits 🚨</option>
@@ -438,13 +426,15 @@ const handleAddRecordClick = () => {
              </select>
            </div>
 
+           
+
            <div className="flex flex-col">
              <label className="sr-only" htmlFor="doctor">
                Doctor 👨🏿‍⚕️
              </label>
              <input
                type="text"
-               className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
+               className="w-full bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
                name="doctor"
                placeholder="Name of Doctor"
                id="doctor"
@@ -468,13 +458,32 @@ const handleAddRecordClick = () => {
              />
            </div>
 
-           <div className="flex flex-col">
+           
+
+          <div className="flex flex-col">
+             <label className="sr-only" htmlFor="doctor">
+               MedicalImage
+             </label>
+             <input
+               type="file"
+               className="w-60 bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
+               name=""
+               placeholder="Medical Image"
+               id="medicalImage"
+               accept="image/*"
+               onChange={handleFileChange}
+               required
+             />
+          </div>
+
+           
+          <div className="flex flex-col">
              <label className="sr-only" htmlFor="doctor">
                Date
              </label>
              <input
                type="date"
-               className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
+               className="w-40 bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
                name=""
                placeholder="Date of Next Appointment"
                id="appointment"
@@ -483,25 +492,7 @@ const handleAddRecordClick = () => {
                required
              />
            </div>
-
-           <div className="flex flex-col">
-             <label className="sr-only" htmlFor="doctor">
-               MedicalImage
-             </label>
-             <input
-               type="file"
-               className="block w-full rounded-md bg-white border border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2 placeholder-gray-500 my-2 text-gray-900"
-               name=""
-               placeholder="Medical Image"
-               id="medicalImage"
-               accept="image/*"
-               onChange={handleFileChange}
-               required
-             />
-           </div>
-
            
-
 
 
            <button
@@ -524,46 +515,20 @@ const handleAddRecordClick = () => {
      {!showForm && (
       <div>
         
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-2 mx-2"
-              type="submit"
-              onClick={handleAddRecordClick}>
-              Add Record +
-            </button>
+            
 
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded my-2 mx-2"
-              type="submit"
-              // onClick={}
-              >
-              Share Medical History 📤
-            </button>
+            <Button variant="black" size="lg" onClick={handleAddRecordClick}>
+            Add Record +
+            </Button>
+
+            <Button variant="black" size="lg">
+            Share Medical History ➣
+            </Button>
      <Records records={allRecords} web5={web5} did={myDid}/>
         </div>
+    
      )}
    </div>
 
  )
-}
-
-
-function StethoscopeIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
-      <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
-      <circle cx="20" cy="10" r="2" />
-    </svg>
-  )
 }

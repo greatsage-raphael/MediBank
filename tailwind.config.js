@@ -5,6 +5,11 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx}',
     './app/**/*.{js,ts,jsx,tsx}',
   ],
+  variants: {
+    extend: {
+      opacity: ['hover'],
+    },
+  },
   theme: {
     extend: {},
   },

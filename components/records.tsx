@@ -1,5 +1,8 @@
 import { Web5 } from "@web5/api";
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "./card"
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { Badge } from "lucide-react";
 
 
 interface Record {
@@ -21,6 +24,10 @@ interface RecordsProps {
 }
 
 const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
+  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter()
+
+
   if (!records) {
     return <p>No medical records found.</p>;
   }
@@ -28,6 +35,7 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   console.log("Records", records)
 
   const deleteRecord = async (recordId: string) => {
+    setIsDeleting(true)
     console.log('deleting', recordId);
     if (!web5 || !did) {
       console.error("Web5 or did is missing");
@@ -43,10 +51,12 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   
     if (response.status.code === 200) {
       console.log(`Record:${recordId} deleted successfully`);
-      // TODO: Update your records state here to remove the deleted record
+      alert(`Medical Record Deleted Successfully: ${recordId}`)
     } else {
       console.error("Error while deleting record:", response.status);
     }
+
+    
   }
 
 
@@ -84,27 +94,18 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
               </div>
             </CardContent>
             <CardFooter>
-            <button
-              className="bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2"
-              type="submit"
-              onClick={() => deleteRecord(record.id)} // add this
-            >
-            Delete ❌
-            </button>
 
             <button
-              className="bg-teal-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mx-2"
-              type="submit"
-              >
-              Edit ✏️
-            </button>
+             className={`bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2`}
+             type="submit"
+             onClick={() => deleteRecord(record.id)}
+             disabled={isDeleting}
+           >
+             {isDeleting ? "Deleting..." : "Delete " }
+           </button>
 
-            {/* <button
-              className="bg-teal-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mx-2"
-              type="submit"
-              >
-              share 📤
-            </button> */}
+
+            
             </CardFooter>
           </Card>
           ))}

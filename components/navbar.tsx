@@ -1,7 +1,18 @@
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
 import { SVGProps } from "react"
 
-export default function Navbar() {
+interface didProps {
+  did: string;
+}
+
+
+  const Navbar: React.FC<didProps> = ({ did}) => {
+
+
+    //Robohash is a easy web service that makes it easy to provide unique, robot/alien/monster/whatever images for any text
+    const roboHashName = `https://robohash.org/${did}`
+
+  
   
   return (
       <header className="flex items-center h-16 px-4 border-b bg-white">
@@ -10,7 +21,8 @@ export default function Navbar() {
       <nav className="ml-auto font-medium">
       <div className="flex items-center gap-3 mb-4 mx-2">
           <Avatar className="h-9 w-9">
-            <AvatarImage alt="User Avatar" src="https://robohash.org/avatar.png" />
+            <AvatarImage alt="User Avatar" src={roboHashName} />
+            <AvatarFallback>{did}</AvatarFallback>
           </Avatar>
           <div className="grid gap-0.5 text-xs"> 
           </div>
@@ -43,3 +55,5 @@ export default function Navbar() {
     )
   }
   
+
+  export default Navbar;
