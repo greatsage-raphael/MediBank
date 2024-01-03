@@ -2,7 +2,7 @@ import { Web5 } from "@web5/api";
 import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter } from "./card"
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { Badge } from "lucide-react";
+import { useModal } from "./recipient";
 
 
 interface Record {
@@ -25,6 +25,8 @@ interface RecordsProps {
 
 const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
+  const { DemoModal, setShowDemoModal } = useModal();
+  
   const router = useRouter()
 
 
@@ -51,18 +53,13 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   
     if (response.status.code === 200) {
       console.log(`Record:${recordId} deleted successfully`);
-      alert(`Medical Record Deleted Successfully: ${recordId}`)
     } else {
       console.error("Error while deleting record:", response.status);
     }
-
-    
   }
-
+ 
 
   return (
-
-    
     <div className="flex flex-col min-h-screen bg-gray-100">
       <main className="flex-grow p-4">
         <h2 className="text-xl font-semibold mb-4">Your Medical Records</h2>
@@ -96,16 +93,33 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
             <CardFooter>
 
             <button
-             className={`bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2`}
+             className={`inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-transparent rounded-md cursor-pointer hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed mx-2`}
              type="submit"
              onClick={() => deleteRecord(record.id)}
-             disabled={isDeleting}
            >
-             {isDeleting ? "Deleting..." : "Delete " }
+             Delete 
            </button>
 
+            {/* <button
+             className={`bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2`}
+             type="submit"
+            //  onClick={() => SendRecord(record.id)}
+           >
+             {isDeleting ? "Sending.." : "Send Record " }
+           </button> */}
 
-            
+           <div>
+           {web5 ?
+           DemoModal(web5, record.id) : "No DID found"
+           }
+          <button
+            onClick={() => setShowDemoModal(true)}
+            type="button"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-transparent rounded-md cursor-pointer hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Send Record
+          </button> 
+        </div>
             </CardFooter>
           </Card>
           ))}
