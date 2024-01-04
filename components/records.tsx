@@ -20,7 +20,7 @@ interface Record {
 interface RecordsProps {
   records: Record[] | undefined;
   did: string;
-  web5: Web5 | null;
+  web5: Web5;
 }
 
 const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
@@ -109,9 +109,9 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
            </button> */}
 
            <div>
-           {web5 ?
-           DemoModal(web5, record.id) : "No DID found"
-           }
+          
+           {DemoModal(web5, record.id)} 
+           
           <button
             onClick={() => setShowDemoModal(true)}
             type="button"

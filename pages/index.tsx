@@ -58,54 +58,65 @@ export default function Component() {
  const createProtocolDefinition = () => {
    const mediBankProtocolDefinition =
    {
-     "protocol": "https://medibank.dev/medical-records-protocol",
-     "published": true,
-     "types": {
-       "medicalRecord": {
-         "schema": "https://medibank.dev/medicalRecord",
-         "dataFormats": ["application/json"],
-       },
-       "medicalImage": {
-          "dataFormats": ["image/png", "image/jpeg"],
+    "protocol": "https://medibank.dev/medical-records-protocol",
+    "published": true,
+    "types": {
+      "medicalRecord": {
+        "schema": "https://medibank.dev/medicalRecord",
+        "dataFormats": ["application/json"]
+      },
+      "medicalImage": {
+         "dataFormats": ["image/png", "image/jpeg"]
+      }
+    },
+    "structure": {
+      "medicalRecord": 
+     {
+        "$actions": [
+          {
+            "who": "anyone",
+            "can": "write"
           },
-     },
-     "structure": {
-       "medicalRecord": 
-      {
+          {
+            "who": "author",
+            "of": "medicalRecord",
+            "can": "read"
+          },
+          {
+           "who": "recipient",
+           "of": "medicalRecord",
+           "can": "write"
+         },
+         {
+           "who": "recipient",
+           "of": "medicalRecord",
+           "can": "read"
+         }
+        ],
+        "medicalImage": {
          "$actions": [
            {
-             "who": "anyone",
+             "who": "author",
+             "of": "medicalRecord",
              "can": "write"
            },
            {
              "who": "author",
              "of": "medicalRecord",
              "can": "read"
+           },
+           {
+             "who": "recipient",
+             "of": "medicalRecord",
+             "can": "write"
            }
-         ],
-         "medicalImage": {
-          "$actions": [
-            {
-              "who": "author",
-              "of": "medicalRecord",
-              "can": "write"
-            },
-            {
-              "who": "author",
-              "of": "medicalRecord",
-              "can": "read"
-            }
-          ],
-        },
-      },
-     },
-   };
+         ]
+       }
+     }
+    }
+ };
    return mediBankProtocolDefinition;
  };
-
-
-
-
 
 
 
@@ -270,8 +281,8 @@ const writeToDwn = async (JSONmedicalRecord: any) => {
 
    console.log("Medical Img: ", medicalImage)
    if(medicalImage && record){
-    const conId = record.id
-    await imageWrite(medicalImage, conId)
+    const RecordId = record.id
+    await imageWrite(medicalImage, RecordId)
    }
    return record;
  } else {
@@ -524,7 +535,7 @@ const handleAddRecordClick = () => {
             <Button variant="black" size="lg">
             Share Medical History ➣
             </Button>
-     <Records records={allRecords} web5={web5} did={myDid}/>
+     {web5 !== null && <Records records={allRecords} web5={web5} did={myDid}/>}
         </div>
     
      )}

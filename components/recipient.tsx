@@ -29,7 +29,7 @@ const DemoModal = ({
   
   
 
-  const SendRecord = async (recordId: string) => {
+  const SendRecord = async (recordID: string) => {
     setIsSending(true)
     console.log('Sending', recordId);
     if (!web5) {
@@ -45,27 +45,38 @@ const DemoModal = ({
       },
     });
 
-    console.log("", response.records)
+    //console.log("Record to be sent", response.records)
 
-    const message = response.records
+    if(response.records){
+    const message = response.records.map(async (recordSent) => {
+      let data = await recordSent.data.json();
+      const JSONdata = JSON.stringify(data)
 
-    const { record } = await web5.dwn.records.create({
-      data: message,
-      store: false, //remove this line if you want to keep a copy of the record in the sender's DWN
-      message: {
-          dataFormat: 'application/json'
-      },
-  });
-  
-  //send record to recipient's DWN
+      console.log("Record Sent", data)
+      console.log("Record JSON Sent", JSONdata)
+
+      const { record } = await web5.dwn.records.create({
+        data: JSONdata,
+        store: false, //remove this line if you want to keep a copy of the record in the sender's DWN
+        message: {
+            dataFormat: 'application/json'
+        },
+    });
+
+    console.log("Record Formed", record)
+
+    //send record to recipient's DWN
   if(record){
-  const {status} = await record.send(recipientid);
-  console.log("Staus: ", status)
-  if (status.code === 200){
-    console.log(`Record ${record} sent successfully`)
+    const {status} = await record.send(recipientid);
+    console.log("Status: ", status)
+    if (status.code === 200){
+      console.log(`Record ${record} sent successfully`)
+    }
+    }
+    })
+  
   }
-  }
-  }
+}
 
   
 
