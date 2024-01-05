@@ -305,7 +305,7 @@ const handleSubmit = async (e: any) => {
  const medicalRecord = constructMedicalRecord(summary, doctor, reason, appointment);
  const JSONmedicalRecord = JSON.stringify(medicalRecord)
  const record = await writeToDwn(JSONmedicalRecord);
- console.log("Logged record", record)
+ //console.log("Logged record", record)
  setIsSaving(false)
  setShowForm(false);
 };
@@ -373,7 +373,7 @@ if (response.records && response.status.code === 200) {
           data.imageId = imageId
           
           const completedMedicalrecords = data;
-          console.log('new data:', completedMedicalrecords);
+          //console.log('new data:', completedMedicalrecords);
           data = completedMedicalrecords
           }
         }
@@ -530,10 +530,6 @@ const handleAddRecordClick = () => {
 
             <Button variant="black" size="lg" onClick={handleAddRecordClick}>
             Add Record +
-            </Button>
-
-            <Button variant="black" size="lg">
-            Share Medical History ➣
             </Button>
      {web5 !== null && <Records records={allRecords} web5={web5} did={myDid}/>}
         </div>

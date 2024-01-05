@@ -6,6 +6,7 @@ import {
   SetStateAction,
   useCallback,
   useMemo,
+  SVGProps,
 } from "react";
 
 
@@ -24,7 +25,7 @@ const DemoModal = ({
   const [recipientid, setRecipient] = useState<string >("")
   const [isSending, setIsSending] = useState(false)
 
-  console.log("recipientID ",recipientid)
+  //console.log("recipientID ",recipientid)
 
   
   
@@ -59,7 +60,12 @@ const DemoModal = ({
         data: JSONdata,
         store: false, //remove this line if you want to keep a copy of the record in the sender's DWN
         message: {
-            dataFormat: 'application/json'
+          published: true,
+          protocol: "https://medibank.dev/medical-records-protocol",
+          protocolPath: "medicalRecord",
+          schema: "https://medibank.dev/medicalRecord",
+          recipient: recipientid,
+          dataFormat: "application/json"
         },
     });
 
@@ -70,7 +76,7 @@ const DemoModal = ({
     const {status} = await record.send(recipientid);
     console.log("Status: ", status)
     if (status.code === 200){
-      console.log(`Record ${record} sent successfully`)
+      console.log(`Record ${recordId} sent successfully`)
     }
     }
     })
@@ -139,3 +145,5 @@ export function useModal() {
     [setShowDemoModal, DemoModalCallback],
   );
 }
+
+
