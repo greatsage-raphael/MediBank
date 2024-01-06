@@ -29,9 +29,6 @@ const Navbar: React.FC<didProps> = ({ did }) => {
               <AvatarFallback>{did}</AvatarFallback>
             </Avatar>
           </Button>
-          {/* <div className="grid gap-0.5 text-xs"> 
-          text
-          </div> */}
         </div>
       </nav>
     </header>

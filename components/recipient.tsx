@@ -24,6 +24,7 @@ const DemoModal = ({
 
   const [recipientid, setRecipient] = useState<string >("")
   const [isSending, setIsSending] = useState(false)
+  const [sender, setSender] = useState<string >("")
 
   //console.log("recipientID ",recipientid)
 
@@ -51,6 +52,7 @@ const DemoModal = ({
     if(response.records){
     const message = response.records.map(async (recordSent) => {
       let data = await recordSent.data.json();
+      data.senderName = sender
       const JSONdata = JSON.stringify(data)
 
       console.log("Record Sent", data)
@@ -104,6 +106,17 @@ const DemoModal = ({
                id="recipient"
                value={recipientid}
                onChange={(e) => setRecipient(e.target.value)}
+               required
+             />
+
+                <input
+               type="text"
+               className="w-full bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
+               name="sender"
+               placeholder="DID of Doctor"
+               id="recipient"
+               value={sender}
+               onChange={(e) => setSender(e.target.value)}
                required
              />
 

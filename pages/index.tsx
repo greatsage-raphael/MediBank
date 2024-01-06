@@ -10,10 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/avatar";
 import { Badge } from "../components/badge";
 import Link from "next/link";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/accordion";
+import Receivedrecords from "../components/receivedRecords";
 
 
-export default function Component() {
-    
+export default function Component() {  
  const [web5, setWeb5] = useState<Web5 | null>(null)
  const [myDid, setMyDid] = useState<string >("")
  const [doctor, setDoctor] = useState<string>("")
@@ -25,6 +25,9 @@ export default function Component() {
  const [showForm, setShowForm] = useState(false);
  const [appointment, setAppointment] = useState<string >("")
  const [medicalImage, setMedicalImage] = useState<File | null>(null);
+ const [receivedRecords, setReceivedRecords] = useState<any[] | undefined>(undefined);
+
+
 
   //connecting to web5 and logging my credentials
  useEffect(() => {
@@ -52,7 +55,8 @@ export default function Component() {
  useEffect(() => {
   if (!web5 || !myDid) return; 
   fetchMedicalRecord(web5, myDid).then(records => setAllRecords(records));
-}, [web5, myDid, allRecords]);
+  fetchReceivedRecord(web5, myDid).then(records => setReceivedRecords(records));
+}, [web5, myDid, allRecords, receivedRecords]);
 
 
 //defining the mediBank protocol
@@ -343,6 +347,12 @@ if (response.records && response.status.code === 200) {
   const receivedRecords = await Promise.all(
     response.records.map(async (record) => {
       let data = await record.data.json();
+
+      //console.log("data ", data)
+
+// Check for 'author' field in data, if the author === mydid
+      if (data.author && data.author === myDid) {
+        
       const medicalRecordId = record.id;
       MedicalRecordsIds.push(medicalRecordId);
 
@@ -379,8 +389,10 @@ if (response.records && response.status.code === 200) {
           }
         }
       }
+      console.log("Received Medical data ", data)
       // Return 'data' which now holds 'completedMedicalrecords'.
       return data
+    }
     })
   );
   
@@ -392,12 +404,89 @@ if (response.records && response.status.code === 200) {
 };
 
 
+const fetchReceivedRecord = async (web5: Web5, did: any) => {
+  const response = await web5.dwn.records.query({
+    from: did,
+    message: {
+      filter: {
+        protocol: "https://medibank.dev/medical-records-protocol",
+        schema: "https://medibank.dev/medicalRecord",
+        dataFormat: 'application/json',
+      },
+    },
+  });
+
+  // Get images
+  const { records } = await web5.dwn.records.query({
+    from: did,
+    message: {
+      filter: {
+        protocol: "https://medibank.dev/medical-records-protocol",
+        protocolPath: 'medicalRecord/medicalImage',
+      },
+    },
+  });
+
+  const MedicalRecordsIds: any[] = []
+
+  if (response.records && response.status.code === 200) {
+    const receivedRecords = await Promise.all(
+      response.records.map(async (record) => {
+        let data = await record.data.json();
+
+        // Check for 'author' field in data
+        if (data.author && data.author !== myDid) {
+          const medicalRecordId = record.id;
+          MedicalRecordsIds.push(medicalRecordId);
+
+          if (records) {
+            for (const imageRecord of records) {
+              const imageId = imageRecord.id
+
+              // Retrieve blob data for the image record
+              const { record, status } = await web5.dwn.records.read({
+                from: did,
+                message: {
+                  filter: {
+                    recordId: imageId,
+                  },
+                },
+              });
+
+              const parentId = imageRecord.contextId
+
+              if (parentId === medicalRecordId) {
+                const imageresult = await record.data.blob()
+                const imageUrl = URL.createObjectURL(imageresult);
+                data.image = imageUrl
+                data.id = medicalRecordId
+                data.imageId = imageId
+
+                const completedMedicalrecords = data;
+                data = completedMedicalrecords
+                console.log("Received Medical Results ", completedMedicalrecords)
+              }
+            }
+          }
+
+          // Return 'data' which now holds 'completedMedicalrecords'.
+          return data
+        }
+      })
+    );
+
+    return receivedRecords.filter(Boolean); // Filter out null or undefined values
+  } else {
+    console.log("Error:", response.status);
+  }
+};
+
 const handleAddRecordClick = () => {
   setShowForm(true);
 };
 
 
-
+console.log("All Records: ", allRecords)
 
  return (
    <div className="flex flex-col min-h-screen bg-gray-100">
@@ -542,7 +631,7 @@ const handleAddRecordClick = () => {
           <AccordionItem value="received">
             <AccordionTrigger className="text-base">Received Records</AccordionTrigger>
             <AccordionContent>
-            {web5 !== null && <Records records={allRecords} web5={web5} did={myDid}/>}
+            {web5 !== null && <Receivedrecords records={receivedRecords} web5={web5} did={myDid}/>}
             </AccordionContent>
             </AccordionItem>
             </Accordion>

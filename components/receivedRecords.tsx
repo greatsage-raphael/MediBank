@@ -3,6 +3,7 @@ import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter }
 import { SVGProps, useState } from "react";
 import { useRouter } from "next/router";
 import { useModal } from "./recipient";
+import { Badge } from "./badge";
 
 
 interface Record {
@@ -15,6 +16,7 @@ interface Record {
   dateAdded: string;
   appointment: string;
   image: string;
+  sender: string;
 }
 
 interface RecordsProps {
@@ -23,7 +25,7 @@ interface RecordsProps {
   web5: Web5;
 }
 
-const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
+const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const { DemoModal, setShowDemoModal } = useModal();
   
@@ -75,59 +77,27 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
           <Card key={index}>
             <CardHeader>
               <CardTitle>{record.reason}</CardTitle>
+              <Badge className="overflow-ellipsis overflow-hidden max-w-[50px] max-h-[30px] text-s ml-auto bg-gray-700 text-white cursor-pointer">
+               {record.author}
+              </Badge>
             </CardHeader>
             <CardContent>
-            <img
-                alt={record.reason}
-                className="mb-2"
-                height="600"
-                src={record.image}
-                style={{
-                  aspectRatio: "100/100",
-                  objectFit: "cover",
-                }}
-                width="1000"
-              />
               <p>Performed by: {record.doctor}</p>
               <p>Summary: </p>
               <p>{record.summary}</p>
               <p>Added on: {record.dateAdded}</p>
               <p>Appointment Scheduled For: {record.appointment}</p>
+              <p></p>
               <div>
               
               </div>
             </CardContent>
             <CardFooter>
-
-            <button
-             className={`inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-transparent rounded-md cursor-pointer hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed mx-2`}
-             type="submit"
-             onClick={() => deleteRecord(record.id)}
-           >
-             Delete 
-           </button>
-
-            {/* <button
-             className={`bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2`}
-             type="submit"
-            //  onClick={() => SendRecord(record.id)}
-           >
-             {isDeleting ? "Sending.." : "Send Record " }
-           </button> */}
-
-           <div>
-          
-           {DemoModal(web5, record.id)} 
-           
-          <button
-            onClick={() => setShowDemoModal(true)}
-            type="button"
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-100 border border-transparent rounded-md cursor-pointer hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Send Record
-          </button> 
-        </div>
+                    <div className="grid gap-1">
+                      <div>Sender: {record.sender}</div>
+                    </div>
             </CardFooter>
+            
           </Card>
           ))}
         </div>
@@ -137,7 +107,7 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
 }
 
 
-export default Records;
+export default Receivedrecords;
 
 
 function loadingIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
