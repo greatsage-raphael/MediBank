@@ -9,6 +9,7 @@ import { Button } from "../components/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/avatar";
 import { Badge } from "../components/badge";
 import Link from "next/link";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/accordion";
 
 
 export default function Component() {
@@ -531,7 +532,20 @@ const handleAddRecordClick = () => {
             <Button variant="black" size="lg" onClick={handleAddRecordClick}>
             Add Record +
             </Button>
+            <Accordion className="w-full" collapsible type="single">
+          <AccordionItem value="personal">
+            <AccordionTrigger className="text-base">Personal Records</AccordionTrigger>
+            <AccordionContent>
      {web5 !== null && <Records records={allRecords} web5={web5} did={myDid}/>}
+     </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="received">
+            <AccordionTrigger className="text-base">Received Records</AccordionTrigger>
+            <AccordionContent>
+            {web5 !== null && <Records records={allRecords} web5={web5} did={myDid}/>}
+            </AccordionContent>
+            </AccordionItem>
+            </Accordion>
         </div>
     
      )}

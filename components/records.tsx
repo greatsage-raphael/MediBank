@@ -30,7 +30,7 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   const router = useRouter()
 
 
-  if (!records || records.length < 0) {
+  if (!records || records.length <= 0) {
     return ( 
       <div className="flex items-center space-x-3">
         <p>No medical records found. Attempting to retrieve records  </p>

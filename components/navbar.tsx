@@ -1,40 +1,44 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
 import { SVGProps } from "react"
+import copy from 'clipboard-copy';
+import { Button } from "./button";
 
 interface didProps {
   did: string;
 }
 
+const Navbar: React.FC<didProps> = ({ did }) => {
 
-  const Navbar: React.FC<didProps> = ({ did}) => {
-
-
-    //Robohash is a easy web service that makes it easy to provide unique, robot/alien/monster/whatever images for any text
     const roboHashName = `https://robohash.org/${did}`
 
-  
-  
+
+    const handleClick = async () => {
+      const string = `${did}`    
+       await copy(string)
+    }
+
   return (
       <header className="flex items-center h-16 px-4 border-b bg-white">
         <StethoscopeIcon className="h-6 w-6" />
       <h1 className="ml-2 text-2xl font-semibold">MediBank</h1>
       <nav className="ml-auto font-medium">
       <div className="flex items-center gap-3 mb-4 mx-2">
-          <Avatar className="h-9 w-9">
-            <AvatarImage alt="User Avatar" src={roboHashName} />
-            <AvatarFallback>{did}</AvatarFallback>
-          </Avatar>
-          <div className="grid gap-0.5 text-xs"> 
-          </div>
+      <Button className="rounded-full" size="icon" variant="outline" onClick={handleClick}>
+            <Avatar className="h-9 w-9 rounded-full cursor-pointer">
+              <AvatarImage alt="User Avatar" src={roboHashName} />
+              <AvatarFallback>{did}</AvatarFallback>
+            </Avatar>
+          </Button>
+          {/* <div className="grid gap-0.5 text-xs"> 
+          text
+          </div> */}
         </div>
       </nav>
     </header>
   )
 }
 
-
-
-  function StethoscopeIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+function StethoscopeIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
     return (
       <svg
         {...props}
@@ -53,7 +57,6 @@ interface didProps {
         <circle cx="20" cy="10" r="2" />
       </svg>
     )
-  }
-  
+}
 
-  export default Navbar;
+export default Navbar;
