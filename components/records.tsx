@@ -3,6 +3,7 @@ import { CardTitle, CardHeader, CardContent, Card, CardDescription, CardFooter }
 import { SVGProps, useState } from "react";
 import { useRouter } from "next/router";
 import { useModal } from "./recipient";
+import { useToast } from "../components/use-toast";
 
 
 interface Record {
@@ -26,6 +27,7 @@ interface RecordsProps {
 const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const { DemoModal, setShowDemoModal } = useModal();
+  const { toast } = useToast()
   
   const router = useRouter()
 
@@ -58,8 +60,14 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
   
     if (response.status.code === 200) {
       console.log(`Record:${recordId} deleted successfully`);
+      toast({
+             description: "Record deleted successfully",
+           })
     } else {
       console.error("Error while deleting record:", response.status);
+      toast({
+        description: "Record deleted successfully",
+      })
     }
   }
  
@@ -94,7 +102,6 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
               <p>Added on: {record.dateAdded}</p>
               <p>Appointment Scheduled For: {record.appointment}</p>
               <div>
-              
               </div>
             </CardContent>
             <CardFooter>
@@ -107,18 +114,8 @@ const Records: React.FC<RecordsProps> = ({ records, did, web5 }) => {
              Delete 
            </button>
 
-            {/* <button
-             className={`bg-teal-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mx-2`}
-             type="submit"
-            //  onClick={() => SendRecord(record.id)}
-           >
-             {isDeleting ? "Sending.." : "Send Record " }
-           </button> */}
-
            <div>
-          
            {DemoModal(web5, record.id)} 
-           
           <button
             onClick={() => setShowDemoModal(true)}
             type="button"

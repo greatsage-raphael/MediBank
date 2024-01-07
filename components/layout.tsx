@@ -1,4 +1,5 @@
 import Footer from './footer'
+import { Toaster } from "../components/toaster"
 
 interface MyComponentProps {
     children: React.ReactNode;
@@ -8,6 +9,7 @@ interface MyComponentProps {
   return (
     <>
       <main>{children}</main>
+      <Toaster />
       <Footer />
     </>
   )

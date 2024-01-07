@@ -6,11 +6,9 @@ import Records from "../components/records";
 import Navbar from "../components/navbar";
 import imageCompression  from "browser-image-compression"
 import { Button } from "../components/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/avatar";
-import { Badge } from "../components/badge";
-import Link from "next/link";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/accordion";
 import Receivedrecords from "../components/receivedRecords";
+import { useToast } from "../components/use-toast";
 
 
 export default function Component() {  
@@ -26,6 +24,7 @@ export default function Component() {
  const [appointment, setAppointment] = useState<string >("")
  const [medicalImage, setMedicalImage] = useState<File | null>(null);
  const [receivedRecords, setReceivedRecords] = useState<any[] | undefined>(undefined);
+ const { toast } = useToast()
 
 
 
@@ -313,6 +312,9 @@ const handleSubmit = async (e: any) => {
  //console.log("Logged record", record)
  setIsSaving(false)
  setShowForm(false);
+  toast({
+   description: "Your medical Record has been saved successfully",
+ })
 };
 
 
@@ -464,7 +466,7 @@ const fetchReceivedRecord = async (web5: Web5, did: any) => {
 
                 const completedMedicalrecords = data;
                 data = completedMedicalrecords
-                console.log("Received Medical Results ", completedMedicalrecords)
+                //console.log("Received Medical Results ", completedMedicalrecords)
               }
             }
           }
@@ -486,7 +488,7 @@ const handleAddRecordClick = () => {
 };
 
 
-console.log("All Records: ", allRecords)
+//console.log("All Records: ", allRecords)
 
  return (
    <div className="flex flex-col min-h-screen bg-gray-100">
@@ -605,6 +607,11 @@ console.log("All Records: ", allRecords)
                }`}
              type="submit"
              disabled={isSaving || doctor === ""}
+            //  onClick={() => {
+            //   toast({
+            //     description: "Your record has been saved.",
+            //   })
+            // }}
            >
              {isSaving ? "Saving to DWN..." : "Save to DWN"}
            </button>
@@ -614,6 +621,7 @@ console.log("All Records: ", allRecords)
    )}
      </div>
      {!showForm && (
+      <>
       <div>
         
             
@@ -636,9 +644,32 @@ console.log("All Records: ", allRecords)
             </AccordionItem>
             </Accordion>
         </div>
+</>
     
      )}
    </div>
 
  )
+}
+
+
+function TextIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 6.1H3" />
+      <path d="M21 12.1H3" />
+      <path d="M15.1 18H3" />
+    </svg>
+  )
 }

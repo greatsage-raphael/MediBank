@@ -4,6 +4,8 @@ import { SVGProps, useState } from "react";
 import { useRouter } from "next/router";
 import { useModal } from "./recipient";
 import { Badge } from "./badge";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import copy from 'clipboard-copy';
 
 
 interface Record {
@@ -16,7 +18,7 @@ interface Record {
   dateAdded: string;
   appointment: string;
   image: string;
-  sender: string;
+  senderName: string;
 }
 
 interface RecordsProps {
@@ -41,7 +43,7 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
     );
   }
 
-  //console.log("Records", records)
+  console.log("Records", records)
 
   const deleteRecord = async (recordId: string) => {
     setIsDeleting(true)
@@ -64,6 +66,11 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
       console.error("Error while deleting record:", response.status);
     }
   }
+
+  const handleClick = async () => {
+    const string = `${did}`    
+     await copy(string)
+  }
  
 
   return (
@@ -77,8 +84,11 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
           <Card key={index}>
             <CardHeader>
               <CardTitle>{record.reason}</CardTitle>
-              <Badge className="overflow-ellipsis overflow-hidden max-w-[50px] max-h-[30px] text-s ml-auto bg-gray-700 text-white cursor-pointer">
-               {record.author}
+              <Badge className="overflow-ellipsis overflow-hidden max-w-[50px] max-h-[30px] text-s ml-auto bg-gray-700 text-white cursor-pointer" onClick={handleClick}>
+              <Avatar className="h-9 w-9 rounded-full cursor-pointer">
+              <AvatarImage alt="User Avatar" src={`https://robohash.org/${record.author}`} />
+              <AvatarFallback>{did}</AvatarFallback>
+            </Avatar>
               </Badge>
             </CardHeader>
             <CardContent>
@@ -94,7 +104,7 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
             </CardContent>
             <CardFooter>
                     <div className="grid gap-1">
-                      <div>Sender: {record.sender}</div>
+                      <div>Sender: {record.senderName}</div>
                     </div>
             </CardFooter>
             

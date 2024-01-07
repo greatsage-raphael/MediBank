@@ -9,6 +9,7 @@ interface didProps {
 
 const Navbar: React.FC<didProps> = ({ did }) => {
 
+  //Robohash is a easy web service that makes it easy to provide unique, robot/alien/monster/whatever images for any text
     const roboHashName = `https://robohash.org/${did}`
 
 

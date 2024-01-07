@@ -8,6 +8,7 @@ import {
   useMemo,
   SVGProps,
 } from "react";
+import { useToast } from "./use-toast";
 
 
 const DemoModal = ({
@@ -25,6 +26,7 @@ const DemoModal = ({
   const [recipientid, setRecipient] = useState<string >("")
   const [isSending, setIsSending] = useState(false)
   const [sender, setSender] = useState<string >("")
+  const { toast } = useToast()
 
   //console.log("recipientID ",recipientid)
 
@@ -78,7 +80,10 @@ const DemoModal = ({
     const {status} = await record.send(recipientid);
     console.log("Status: ", status)
     if (status.code === 200){
-      console.log(`Record ${recordId} sent successfully`)
+      //console.log(`Record ${recordId} sent successfully`)
+      toast({
+        description: "Your medical Record Sent successfully",
+      })
     }
     }
     })
@@ -97,28 +102,33 @@ const DemoModal = ({
     <Modal showModal={showDemoModal} setShowModal={setShowDemoModal}>
       <button className="w-full overflow-hidden md:max-w-md md:rounded-2xl md:border md:border-gray-100 md:shadow-xl">
         <div className="flex flex-col items-center justify-center space-y-3 bg-white px-4 py-6 pt-8 text-center md:px-16">
+          
         <form onSubmit={(e) => handleSubmit(e)} >
+        <div className="mb-6">
         <input
                type="text"
                className="w-full bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
                name="recipient"
-               placeholder="DID of Doctor"
+               placeholder="DID of Doctor e.g did:ion..."
                id="recipient"
                value={recipientid}
                onChange={(e) => setRecipient(e.target.value)}
                required
-             />
+             /> 
+             </div>
 
+             <div className="mb-6">
                 <input
                type="text"
                className="w-full bg-white border border-gray-400 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm px-4 py-2 placeholder-gray-500 text-gray-900"
                name="sender"
-               placeholder="DID of Doctor"
-               id="recipient"
+               placeholder="Your Name e.g Greg Brockman"
+               id="sender"
                value={sender}
                onChange={(e) => setSender(e.target.value)}
                required
              />
+             </div>
 
 <button
              className={`bg-blue-600 w-full hover:bg-blue-700 text-white font-bold mt-6 py-2 px-4 rounded
