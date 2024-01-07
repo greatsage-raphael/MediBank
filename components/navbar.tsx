@@ -2,12 +2,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
 import { SVGProps } from "react"
 import copy from 'clipboard-copy';
 import { Button } from "./button";
+import { useToast } from "../components/use-toast";
 
 interface didProps {
   did: string;
 }
 
 const Navbar: React.FC<didProps> = ({ did }) => {
+  const { toast } = useToast()
 
   //Robohash is a easy web service that makes it easy to provide unique, robot/alien/monster/whatever images for any text
     const roboHashName = `https://robohash.org/${did}`
@@ -16,6 +18,9 @@ const Navbar: React.FC<didProps> = ({ did }) => {
     const handleClick = async () => {
       const string = `${did}`    
        await copy(string)
+       toast({
+        description: "DID copied successfully",
+      })
     }
 
   return (

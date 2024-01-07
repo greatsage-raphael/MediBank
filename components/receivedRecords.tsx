@@ -6,6 +6,7 @@ import { useModal } from "./recipient";
 import { Badge } from "./badge";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import copy from 'clipboard-copy';
+import { useToast } from "../components/use-toast";
 
 
 interface Record {
@@ -28,8 +29,7 @@ interface RecordsProps {
 }
 
 const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
-  const [isDeleting, setIsDeleting] = useState(false)
-  const { DemoModal, setShowDemoModal } = useModal();
+  const { toast } = useToast()
   
   const router = useRouter()
 
@@ -43,33 +43,15 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
     );
   }
 
-  console.log("Records", records)
+  //console.log("Records", records)
 
-  const deleteRecord = async (recordId: string) => {
-    setIsDeleting(true)
-    console.log('deleting', recordId);
-    if (!web5 || !did) {
-      console.error("Web5 or did is missing");
-      return;
-    }
-    
-    const response = await web5.dwn.records.delete({
-      from: did,
-      message: {
-        recordId: recordId,
-      },
-    });
-  
-    if (response.status.code === 200) {
-      console.log(`Record:${recordId} deleted successfully`);
-    } else {
-      console.error("Error while deleting record:", response.status);
-    }
-  }
 
   const handleClick = async () => {
     const string = `${did}`    
      await copy(string)
+     toast({
+      description: "DID copied",
+    })
   }
  
 
