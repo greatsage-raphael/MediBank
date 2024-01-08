@@ -79,7 +79,7 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
               <p>{record.summary}</p>
               <p>Added on: {record.dateAdded}</p>
               <p>Appointment Scheduled For: {record.appointment}</p>
-              <img
+              {/* <img
                 alt={record.reason}
                 className="mb-2"
                 height="600"
@@ -89,7 +89,7 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
                   objectFit: "cover",
                 }}
                 width="1000"
-              />
+              /> */}
             </CardContent>
             <CardFooter>
                     <div className="grid gap-1">
