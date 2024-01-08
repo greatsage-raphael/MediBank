@@ -79,10 +79,17 @@ const Receivedrecords: React.FC<RecordsProps> = ({ records, did, web5 }) => {
               <p>{record.summary}</p>
               <p>Added on: {record.dateAdded}</p>
               <p>Appointment Scheduled For: {record.appointment}</p>
-              <p></p>
-              <div>
-              
-              </div>
+              <img
+                alt={record.reason}
+                className="mb-2"
+                height="600"
+                src={record.image}
+                style={{
+                  aspectRatio: "100/100",
+                  objectFit: "cover",
+                }}
+                width="1000"
+              />
             </CardContent>
             <CardFooter>
                     <div className="grid gap-1">
