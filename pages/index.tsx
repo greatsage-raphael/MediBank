@@ -607,11 +607,6 @@ const handleAddRecordClick = () => {
                }`}
              type="submit"
              disabled={isSaving || doctor === ""}
-            //  onClick={() => {
-            //   toast({
-            //     description: "Your record has been saved.",
-            //   })
-            // }}
            >
              {isSaving ? "Saving to DWN..." : "Save to DWN"}
            </button>
