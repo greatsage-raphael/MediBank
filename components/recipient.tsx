@@ -53,7 +53,7 @@ const DemoModal = ({
 
     if(response.records){
     const message = response.records.map(async (recordSent) => {
-      let data = await recordSent.data.json();
+      const data = await recordSent.data.json();
       data.senderName = sender
       const JSONdata = JSON.stringify(data)
 

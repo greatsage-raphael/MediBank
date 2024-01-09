@@ -209,7 +209,7 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 
     console.log(downloadLink)
 
-    let diff = originalImage.size - image.size 
+    const diff = originalImage.size - image.size 
 
 
     setMedicalImage(compressedImage);
